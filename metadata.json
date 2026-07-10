@@ -1,0 +1,6 @@
+{
+  "name": "Personalized Networking Assistant",
+  "description": "Generate personalized networking conversation starters for professional events using Google Gemini & Wikipedia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

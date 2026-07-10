@@ -1,0 +1,106 @@
+{
+  "Users": [
+    {
+      "id": 1,
+      "name": "Demo Professional",
+      "email": "demo@example.com",
+      "password": "$2b$10$SIguQUNrMKr7DCX9hTAQ5uaseyB0At/LWq1HBnlRAf2ZrJ7YsigpO",
+      "company": "Innovate AI Corp",
+      "profession": "AI Lead Solutions Architect",
+      "role": "Professional",
+      "industry": "Artificial Intelligence",
+      "interests": "Generative AI, SaaS scaling, Angel investing, Tech strategy",
+      "experience_level": "Senior",
+      "career_goals": "Partner with early stage startups, expand enterprise SaaS knowledge, discover breakthrough tech",
+      "networking_goals": "Meet ambitious software engineers, find potential technical co-founders, and connect with angel syndicates",
+      "created_at": "2026-07-10T05:44:02.351Z"
+    },
+    {
+      "id": 2,
+      "name": "husku",
+      "email": "husky@gmail.com",
+      "password": "$2b$10$X23qdigHIouOGsXyKxMu8.7KFd0lWdV6uqLy5C5NQZ21fOJegYApu",
+      "company": null,
+      "profession": "software",
+      "role": "Professional",
+      "industry": "HCL",
+      "interests": "AI",
+      "experience_level": "Senior",
+      "career_goals": null,
+      "networking_goals": null,
+      "created_at": "2026-07-10T05:44:55.380Z"
+    }
+  ],
+  "Sessions": [],
+  "ConversationHistory": [
+    {
+      "id": 1,
+      "user_id": 2,
+      "event_description": "A conference focusing on AI scalability, hybrid cloud architectures, and machine learning developer workflows in enterprise systems.",
+      "user_interests": "Distributed databases, LLMs in production, green energy",
+      "extracted_topics": "[\"AI Scalability\",\"Enterprise Systems\",\"Hybrid Cloud Architectures\",\"Machine Learning Workflows\"]",
+      "conversation_starters": "{\"networking_score\":88,\"categories\":{\"ice_breakers\":[{\"id\":1,\"text\":\"Honestly, I'm just here to see if anyone has actually solved the multi-region latency issue for LLM inference, or if we're all just pretending that hybrid cloud is seamless.\",\"scenario\":\"Standing near the high-top tables or demo booths during a break.\"},{\"id\":2,\"text\":\"Are we actually scaling these workflows, or are we just throwing more H100s at the problem until the local power grid complains?\",\"scenario\":\"Waiting in line for coffee or sitting down next to someone before a keynote.\"}],\"professional_introduction\":[{\"id\":1,\"text\":\"I'm a senior software engineer focusing on the plumbing underneath AI. I design distributed databases and try to keep LLM inference latency from blowing up when we move workloads to production.\",\"scenario\":\"When someone asks, 'So, what do you do?' at a mixer.\"},{\"id\":2,\"text\":\"I specialize in backend architecture and distributed systems. Lately, I've been obsessed with how we can scale up these massive machine learning workflows without destroying the planet's energy grid in the process.\",\"scenario\":\"Introductions during a structured round-table discussion.\"}],\"follow_up_questions\":[{\"id\":1,\"text\":\"How is your team handling state management and cache consistency when syncing models across your hybrid cloud setup?\",\"scenario\":\"After an engineer mentions their enterprise system setup.\"},{\"id\":2,\"text\":\"With the massive compute requirements of production LLMs, are you guys exploring any carbon-aware computing practices, or is the focus purely on raw throughput right now?\",\"scenario\":\"Keeping a technical conversation going with an infrastructure lead.\"}],\"common_interests\":[{\"id\":1,\"text\":\"It feels like we're hitting a wall where traditional distributed databases weren't built for vector search at petabyte scale. I've been experimenting with hybrid storage engines to see if we can get cost-efficient retrieval without sacrificing latency.\",\"scenario\":\"Discussing architectural bottlenecks over lunch.\"},{\"id\":2,\"text\":\"There's a fascinating overlap between green energy grid balancing and batch-scheduling heavy ML training jobs. If we can run our heaviest workloads when the renewable mix is highest, we solve both cost and carbon issues.\",\"scenario\":\"Chitchatting with someone interested in sustainability or operations cost-cutting.\"}],\"networking_strategy\":[{\"id\":1,\"text\":\"The Architect-Peer Strategy: Instead of pitching yourself, focus on exchange of scars. Ask other senior engineers about their worst production failures with distributed databases or LLM scale-out. High-level technical empathy builds incredibly strong professional bonds.\",\"scenario\":\"General event strategy.\"},{\"id\":2,\"text\":\"The Green Compute Niche: Seek out infrastructure engineers from larger enterprises. They are secretly terrified of their cloud bills and power consumption footprint. Position yourself as a senior resource who thinks about both compute density and carbon/energy efficiency.\",\"scenario\":\"Targeting specific enterprise contacts.\"}],\"speaker_questions\":[{\"id\":1,\"text\":\"You talked about scaling your LLM workflows globally. How did you balance the consensus overhead of your distributed database backplane across those regions without degrading real-time user experiences?\",\"scenario\":\"Q&A session after a talk on scaling enterprise ML architectures.\"},{\"id\":2,\"text\":\"Given the rising energy costs of continuous fine-tuning pipelines, did your team factor in compute efficiency or green-energy scheduling when choosing your hybrid cloud providers?\",\"scenario\":\"Q&A session after a presentation on enterprise workflow orchestration.\"}],\"panel_discussion_questions\":[{\"id\":1,\"text\":\"When we talk about hybrid cloud for AI, the data gravity problem is massive. At what point does it become cheaper to migrate the compute to the on-prem data store, rather than streaming petabytes of unstructured training data to public cloud nodes?\",\"scenario\":\"To ask a panel focused on hybrid cloud data strategies.\"},{\"id\":2,\"text\":\"Everyone wants real-time LLMs in production, but the cold-start latency and GPU allocation dynamics are brutal. Are we looking at a future where we need entirely new operating system kernels designed for AI, or can our current orchestrators handle it?\",\"scenario\":\"To discuss with fellow attendees sitting nearby after a panel on ML operations.\"}],\"collaboration_opportunities\":[{\"id\":1,\"text\":\"I’ve been drafting a whitepaper/proof-of-concept on optimizing distributed vector databases specifically to run on lower-power, ARM-based hybrid architectures. I'd love to share the drafts with you if you're interested in green-field infra.\",\"scenario\":\"Proposing a peer-level knowledge share to a fellow senior architect.\"},{\"id\":2,\"text\":\"We're both dealing with the same pain points around model serving costs. Maybe we could sync up sometime to share benchmark data on our respective hybrid cloud orchestrations?\",\"scenario\":\"Suggesting a low-pressure, mutually beneficial exchange of industry insights.\"}],\"linkedin_follow_up\":[{\"id\":1,\"text\":\"Hi [Name], really enjoyed our conversation about the headaches of scaling distributed databases for RAG applications at the AI Scalability conference. Let's keep in touch here to trade more infra battle stories.\",\"scenario\":\"Sending a connection request a few hours after the event.\"},{\"id\":2,\"text\":\"Hey [Name], your points on hybrid cloud orchestration during the coffee break today were spot-on. I'm actively researching the intersection of green compute and heavy ML pipelines—would love to connect and keep that conversation going.\",\"scenario\":\"Connecting with a highly aligned peer or lead.\"}],\"coffee_break\":[{\"id\":1,\"text\":\"This coffee is the only thing running with lower latency than our production models today. How are you enjoying the talks so far?\",\"scenario\":\"Grabbing a cup of coffee at the main catering table.\"},{\"id\":2,\"text\":\"I think I need a distributed database just to track my caffeine intake today. Did you catch that last session on enterprise pipelines?\",\"scenario\":\"Standing by the high tables in the common area.\"}],\"business_card\":[{\"id\":1,\"text\":\"Subject: Scaling architectures / AI Conf follow-up\\n\\nHi [Name],\\n\\nGreat chatting with you today. I loved your perspective on how fast distributed databases are evolving to keep up with production LLMs. \\n\\nI’d love to grab 15 minutes for a virtual coffee next week to swap notes on our scaling approaches. Let me know if you have any availability.\\n\\nBest,\\n[Your Name]\",\"scenario\":\"Sending an email 24-48 hours after swapping business cards.\"},{\"id\":2,\"text\":\"Subject: Green compute & hybrid architectures (from AI Conf)\\n\\nHi [Name],\\n\\nOur quick talk about optimizing hybrid cloud setups for energy and compute efficiency really stuck with me. \\n\\nI'm putting together some notes on cost-optimized orchestration strategies that I think you'd find interesting. Let's connect next week to share ideas?\\n\\nCheers,\\n[Your Name]\",\"scenario\":\"Following up with someone interested in infrastructure sustainability.\"}],\"elevator_pitch\":[{\"id\":1,\"text\":\"I'm a senior engineer specializing in the backend systems that actually make production AI viable. I design distributed databases and hybrid cloud architectures to scale LLMs efficiently—ensuring they aren't just accurate, but also fast, reliable, and energy-conscious.\",\"scenario\":\"A concise, impactful pitch during introductions or structured networking sessions.\"},{\"id\":2,\"text\":\"I solve the data plumbing issues underneath enterprise AI. I build high-performance distributed systems designed to handle the massive compute loads of modern machine learning, focusing heavily on how we can scale these models with a smaller carbon and energy footprint.\",\"scenario\":\"An alternative pitch targeting companies looking to optimize operational costs and green tech initiatives.\"}],\"session_specific\":[{\"id\":1,\"text\":\"That case study on hybrid cloud orchestration was great, but I felt they glossed over the security challenges of moving sensitive corporate data back and forth to public cloud GPUs. How does your company handle that boundary?\",\"scenario\":\"Discussing a session on security and hybrid cloud architecture.\"},{\"id\":2,\"text\":\"The speaker's setup for distributed model caching was clean, but the replication lag must be massive. I wonder if utilizing a Raft-consensus database at the edge would have minimized that state mismatch.\",\"scenario\":\"Geeking out with another senior engineer immediately after a technical deep-dive presentation.\"}],\"closing_conversation\":[{\"id\":1,\"text\":\"I need to go grab a seat before the next panel starts, but I really enjoyed diving into distributed databases with you. Let’s connect on LinkedIn so we can swap architecture designs down the road.\",\"scenario\":\"Gracefully exiting a conversation as a session is about to begin.\"},{\"id\":2,\"text\":\"It’s been great chatting about the energy demands of LLMs—rare to find someone else who cares about the green side of computing here. I'm going to run to the restroom, but let's grab your card so we can stay in touch.\",\"scenario\":\"A natural, polite exit when you want to transition to another area.\"}]}}",
+      "event_type": "Conference",
+      "industry": "Artificial Intelligence",
+      "experience_level": "Senior",
+      "career_goals": null,
+      "networking_goals": null,
+      "networking_score": 88,
+      "created_at": "2026-07-10T05:46:42.421Z"
+    }
+  ],
+  "Feedback": [],
+  "Favorites": [],
+  "SavedSuggestions": [],
+  "UserPreferences": [
+    {
+      "user_id": 1,
+      "theme": "dark",
+      "notifications_enabled": 1,
+      "created_at": "2026-07-10T05:44:02.351Z"
+    },
+    {
+      "user_id": 2,
+      "theme": "dark",
+      "notifications_enabled": 1,
+      "created_at": "2026-07-10T05:44:55.380Z"
+    }
+  ],
+  "Analytics": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "event_type": "user_registered",
+      "metadata": "{\"email\":\"demo@example.com\"}",
+      "created_at": "2026-07-10T05:44:02.353Z"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "event_type": "user_registered",
+      "metadata": "{\"email\":\"husky@gmail.com\"}",
+      "created_at": "2026-07-10T05:44:55.382Z"
+    },
+    {
+      "id": 3,
+      "user_id": 2,
+      "event_type": "user_logged_in",
+      "metadata": "{\"ip\":\"auth\"}",
+      "created_at": "2026-07-10T05:44:55.494Z"
+    },
+    {
+      "id": 4,
+      "user_id": 2,
+      "event_type": "generated_suggestions",
+      "metadata": "{\"event_id\":1,\"topics_count\":4,\"score\":88}",
+      "created_at": "2026-07-10T05:46:42.425Z"
+    },
+    {
+      "id": 5,
+      "user_id": 2,
+      "event_type": "user_logged_out",
+      "metadata": "{}",
+      "created_at": "2026-07-10T05:51:10.452Z"
+    }
+  ]
+}
