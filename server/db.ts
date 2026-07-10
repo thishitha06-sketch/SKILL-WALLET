@@ -4,10 +4,16 @@
  */
 
 import fs from "fs";
+import path from "path";
+import os from "os";
 import { LoggerService } from "./logger.js";
 
 const TAG = "DatabaseService";
-const DB_FILE = "networking_assistant.json";
+
+const isServerless = process.env.VERCEL === "1" || !!process.env.VERCEL;
+const DB_FILE = isServerless 
+  ? path.join(os.tmpdir(), "networking_assistant.json")
+  : "networking_assistant.json";
 
 export interface ConversationHistoryRow {
   id: number;
@@ -127,6 +133,18 @@ export class DatabaseService {
     LoggerService.info(TAG, `Initializing simulated JSON database at: ${DB_FILE}`);
 
     try {
+      if (isServerless && !fs.existsSync(DB_FILE)) {
+        const rootDb = "networking_assistant.json";
+        if (fs.existsSync(rootDb)) {
+          LoggerService.info(TAG, `Seeding temporary database file from ${rootDb} to ${DB_FILE}`);
+          try {
+            fs.copyFileSync(rootDb, DB_FILE);
+          } catch (copyErr) {
+            LoggerService.error(TAG, "Failed to copy seed database to temp dir, will create a fresh one", copyErr);
+          }
+        }
+      }
+
       if (fs.existsSync(DB_FILE)) {
         const fileContent = fs.readFileSync(DB_FILE, "utf-8");
         const parsed = JSON.parse(fileContent);

@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/health", "destination": "/api" },
+    { "source": "/generate-conversation", "destination": "/api" },
+    { "source": "/feedback", "destination": "/api" },
+    { "source": "/history", "destination": "/api" },
+    { "source": "/history/(.*)", "destination": "/api" },
+    { "source": "/fact-check", "destination": "/api" },
+    { "source": "/admin/(.*)", "destination": "/api" },
+    { "source": "/admin", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

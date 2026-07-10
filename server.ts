@@ -29,7 +29,7 @@ const __dirname = __filename ? path.dirname(__filename) : "";
 const TAG = "Server";
 const PORT = 3000;
 
-async function startServer() {
+export async function startServer() {
   // Initialize SQLite database
   try {
     await DatabaseService.init();
@@ -1173,9 +1173,15 @@ Your response MUST be a valid JSON object ONLY matching this schema:
   }
 
   // Bind to host 0.0.0.0 and port 3000
-  app.listen(PORT, "0.0.0.0", () => {
-    LoggerService.info(TAG, `Application running at http://0.0.0.0:${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      LoggerService.info(TAG, `Application running at http://0.0.0.0:${PORT}`);
+    });
+  }
+
+  return app;
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
