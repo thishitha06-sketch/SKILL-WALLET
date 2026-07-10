@@ -21,8 +21,30 @@ export default function App() {
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
+  // Sandbox-safe localStorage Accessors
+  const getStoredToken = (): string | null => {
+    try {
+      return localStorage.getItem("net_assist_token");
+    } catch (e) {
+      console.warn("Storage access blocked by sandbox:", e);
+      return null;
+    }
+  };
+
+  const setStoredToken = (val: string | null) => {
+    try {
+      if (val) {
+        localStorage.setItem("net_assist_token", val);
+      } else {
+        localStorage.removeItem("net_assist_token");
+      }
+    } catch (e) {
+      console.warn("Storage access blocked by sandbox:", e);
+    }
+  };
+
   // Authentication State
-  const [token, setToken] = useState<string | null>(localStorage.getItem("net_assist_token"));
+  const [token, setToken] = useState<string | null>(getStoredToken());
   const [user, setUser] = useState<any | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -44,11 +66,11 @@ export default function App() {
             // Fetch history with the verified token
             fetchHistory(token);
           } else {
-            localStorage.removeItem("net_assist_token");
+            setStoredToken(null);
             setToken(null);
           }
         } else {
-          localStorage.removeItem("net_assist_token");
+          setStoredToken(null);
           setToken(null);
         }
       } catch (err) {
@@ -83,7 +105,7 @@ export default function App() {
   };
 
   const handleAuthSuccess = (newToken: string, loggedUser: any) => {
-    localStorage.setItem("net_assist_token", newToken);
+    setStoredToken(newToken);
     setToken(newToken);
     setUser(loggedUser);
     fetchHistory(newToken);
@@ -100,7 +122,7 @@ export default function App() {
     } catch (err) {
       console.error("Logout failure:", err);
     } finally {
-      localStorage.removeItem("net_assist_token");
+      setStoredToken(null);
       setToken(null);
       setUser(null);
       setHistoryList([]);

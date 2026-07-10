@@ -155,7 +155,11 @@ export function ThreeDDotsCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const N = window.innerWidth < 769 ? 3000 : 6000;
+    let ren: THREE.WebGLRenderer | null = null;
+    let geo: THREE.BufferGeometry | null = null;
+    let mat: THREE.ShaderMaterial | null = null;
+    let animationFrameId: number | null = null;
+
     let scroll = 0;
     let scrollVel = 0;
     let lastScrollY = window.scrollY;
@@ -165,61 +169,6 @@ export function ThreeDDotsCanvas() {
     const _v = new THREE.Vector3();
     const _d = new THREE.Vector3();
 
-    // Renderer
-    const ren = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
-    ren.setSize(window.innerWidth, window.innerHeight);
-    ren.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    ren.setClearColor(0x000000, 0.0);
-
-    // Camera
-    const cam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    cam.position.set(0, 0, 7);
-    let targetZ = 7;
-
-    // Scene
-    const scene = new THREE.Scene();
-
-    // Particles
-    const geo = new THREE.BufferGeometry();
-    const idx = new Float32Array(N);
-    const sizes = new Float32Array(N);
-    const phases = new Float32Array(N);
-    for (let i = 0; i < N; i++) {
-        idx[i] = i;
-        sizes[i] = 0.4 + Math.random() * 1.0;
-        phases[i] = Math.random();
-    }
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
-    geo.setAttribute('aIndex', new THREE.BufferAttribute(idx, 1));
-    geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
-    geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
-
-    const mat = new THREE.ShaderMaterial({
-        vertexShader: VERT,
-        fragmentShader: FRAG,
-        uniforms: {
-            uCount: { value: N },
-            uFormA: { value: 0 },
-            uFormB: { value: 0 },
-            uMix: { value: 0 },
-            uTime: { value: 0 },
-            uMouse: { value: new THREE.Vector3(100, 100, 100) },
-            uMouseRadius: { value: 5.0 },
-            uPointSize: { value: 1.2 },
-            uColorA: { value: new THREE.Color(0.78, 1.0, 0.0) },
-            uColorB: { value: new THREE.Color(0.78, 1.0, 0.0) },
-            uScrollVel: { value: 0 },
-        },
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-    });
-
-    const points = new THREE.Points(geo, mat);
-    points.frustumCulled = false;
-    scene.add(points);
-
-    // Handle Scroll & Velocity calculation
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -227,88 +176,150 @@ export function ThreeDDotsCanvas() {
       scrollVel = currentScrollY - lastScrollY;
       lastScrollY = currentScrollY;
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
 
-    // Handle Mouse
     const handleMouseMove = (e: MouseEvent) => {
       mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
     };
-    window.addEventListener("mousemove", handleMouseMove);
 
-    // Handle Touch
     const handleTouchMove = (e: TouchEvent) => {
       if (!e.touches[0]) return;
       mouseNDC.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
       mouseNDC.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
     };
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
 
     const handleTouchEnd = () => {
       mouseNDC.x = -100;
       mouseNDC.y = -100;
     };
-    window.addEventListener("touchend", handleTouchEnd);
 
-    // Resize
+    let cam: THREE.PerspectiveCamera | null = null;
     const resize = () => {
+      if (!cam || !ren) return;
       const w = window.innerWidth, h = window.innerHeight;
       cam.aspect = w / h;
       cam.updateProjectionMatrix();
       ren.setSize(w, h);
     };
-    window.addEventListener("resize", resize);
 
-    // Animation Loop
-    let animationFrameId: number;
-    const render = () => {
-      animationFrameId = requestAnimationFrame(render);
-      const t = performance.now() * 0.001;
-      const st = getState(scroll);
-      const u = mat.uniforms;
+    try {
+      const N = window.innerWidth < 769 ? 3000 : 6000;
 
-      u.uFormA.value = st.fA;
-      u.uFormB.value = st.fB;
-      u.uMix.value = st.mix;
-      u.uTime.value = t;
-      u.uScrollVel.value += (Math.abs(scrollVel) - u.uScrollVel.value) * 0.1;
-      u.uColorA.value.setRGB(st.rA, st.gA, st.bA);
-      u.uColorB.value.setRGB(st.rB, st.gB, st.bB);
+      // Renderer
+      ren = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+      ren.setSize(window.innerWidth, window.innerHeight);
+      ren.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      ren.setClearColor(0x000000, 0.0);
 
-      // Reset scrollVel back to 0 slowly
-      scrollVel *= 0.9;
+      // Camera
+      cam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+      cam.position.set(0, 0, 7);
+      let targetZ = 7;
 
-      /* Unproject mouse to z=0 plane */
-      _v.set(mouseNDC.x, mouseNDC.y, 0.5).unproject(cam);
-      _d.copy(_v).sub(cam.position).normalize();
-      const distance = -cam.position.z / _d.z;
-      mouse3D.copy(cam.position).addScaledVector(_d, distance);
-      u.uMouse.value.lerp(mouse3D, 0.05);
+      // Scene
+      const scene = new THREE.Scene();
 
-      /* Camera parallax + zoom */
-      targetZ += (st.z - targetZ) * 0.04;
-      const mx = Math.max(-1, Math.min(1, mouseNDC.x));
-      const my = Math.max(-1, Math.min(1, mouseNDC.y));
-      cam.position.x += (mx * 0.4 - cam.position.x) * 0.02;
-      cam.position.y += (my * 0.25 - cam.position.y) * 0.02;
-      cam.position.z += (targetZ - cam.position.z) * 0.04;
-      cam.lookAt(0, 0, 0);
+      // Particles
+      geo = new THREE.BufferGeometry();
+      const idx = new Float32Array(N);
+      const sizes = new Float32Array(N);
+      const phases = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+          idx[i] = i;
+          sizes[i] = 0.4 + Math.random() * 1.0;
+          phases[i] = Math.random();
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+      geo.setAttribute('aIndex', new THREE.BufferAttribute(idx, 1));
+      geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+      geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
 
-      ren.render(scene, cam);
-    };
+      mat = new THREE.ShaderMaterial({
+          vertexShader: VERT,
+          fragmentShader: FRAG,
+          uniforms: {
+              uCount: { value: N },
+              uFormA: { value: 0 },
+              uFormB: { value: 0 },
+              uMix: { value: 0 },
+              uTime: { value: 0 },
+              uMouse: { value: new THREE.Vector3(100, 100, 100) },
+              uMouseRadius: { value: 5.0 },
+              uPointSize: { value: 1.2 },
+              uColorA: { value: new THREE.Color(0.78, 1.0, 0.0) },
+              uColorB: { value: new THREE.Color(0.78, 1.0, 0.0) },
+              uScrollVel: { value: 0 },
+          },
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+      });
 
-    render();
+      const points = new THREE.Points(geo, mat);
+      points.frustumCulled = false;
+      scene.add(points);
+
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("touchmove", handleTouchMove, { passive: true });
+      window.addEventListener("touchend", handleTouchEnd);
+      window.addEventListener("resize", resize);
+
+      // Animation Loop
+      const renderLoop = () => {
+        animationFrameId = requestAnimationFrame(renderLoop);
+        if (!ren || !cam || !mat || !geo) return;
+        const t = performance.now() * 0.001;
+        const st = getState(scroll);
+        const u = mat.uniforms;
+
+        u.uFormA.value = st.fA;
+        u.uFormB.value = st.fB;
+        u.uMix.value = st.mix;
+        u.uTime.value = t;
+        u.uScrollVel.value += (Math.abs(scrollVel) - u.uScrollVel.value) * 0.1;
+        u.uColorA.value.setRGB(st.rA, st.gA, st.bA);
+        u.uColorB.value.setRGB(st.rB, st.gB, st.bB);
+
+        // Reset scrollVel back to 0 slowly
+        scrollVel *= 0.9;
+
+        /* Unproject mouse to z=0 plane */
+        _v.set(mouseNDC.x, mouseNDC.y, 0.5).unproject(cam);
+        _d.copy(_v).sub(cam.position).normalize();
+        const distance = -cam.position.z / _d.z;
+        mouse3D.copy(cam.position).addScaledVector(_d, distance);
+        u.uMouse.value.lerp(mouse3D, 0.05);
+
+        /* Camera parallax + zoom */
+        targetZ += (st.z - targetZ) * 0.04;
+        const mx = Math.max(-1, Math.min(1, mouseNDC.x));
+        const my = Math.max(-1, Math.min(1, mouseNDC.y));
+        cam.position.x += (mx * 0.4 - cam.position.x) * 0.02;
+        cam.position.y += (my * 0.25 - cam.position.y) * 0.02;
+        cam.position.z += (targetZ - cam.position.z) * 0.04;
+        cam.lookAt(0, 0, 0);
+
+        ren.render(scene, cam);
+      };
+
+      renderLoop();
+    } catch (e) {
+      console.warn("ThreeDDotsCanvas failed to initialize WebGL context:", e);
+    }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
       window.removeEventListener("resize", resize);
-      ren.dispose();
-      geo.dispose();
-      mat.dispose();
+      if (ren) ren.dispose();
+      if (geo) geo.dispose();
+      if (mat) mat.dispose();
     };
   }, []);
 
