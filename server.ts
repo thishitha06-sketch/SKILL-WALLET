@@ -7,7 +7,6 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { createServer as createViteServer } from "vite";
 
 // Services
 import { DatabaseService } from "./server/db.js";
@@ -1158,6 +1157,7 @@ Your response MUST be a valid JSON object ONLY matching this schema:
   // Serve static UI / assets
   if (process.env.NODE_ENV !== "production") {
     LoggerService.info(TAG, "Starting server in DEVELOPMENT mode with Vite Middleware");
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
