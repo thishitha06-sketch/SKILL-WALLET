@@ -98,3 +98,40 @@ A production-ready full-stack web application designed to help professional even
 * `GET /history`: Returns a list of past generation records, sorted newest first.
 * `DELETE /history/:id`: Deletes a specific generation item from the SQLite history log.
 * `POST /feedback`: Input `{ conversationId: number, suggestion: string, feedback: 'like' | 'dislike' }`. Saves user ratings.
+
+---
+
+## Render Deployment Instructions
+
+This application is fully production-ready and optimized for deployment on **Render**.
+
+### Step-by-Step Deployment on Render
+
+1. **Create a Render Account**: Sign up at [render.com](https://render.com).
+2. **Create a New Web Service**:
+   - Click **New +** and select **Web Service**.
+   - Connect your GitHub or GitLab repository containing this codebase.
+3. **Configure the Settings**:
+   - **Name**: `personalized-networking-assistant` (or your preferred name)
+   - **Environment/Runtime**: `Node`
+   - **Region**: Select the region closest to your users.
+   - **Branch**: `main` (or your deployment branch)
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start`
+4. **Configure Environment Variables**:
+   Under the **Environment** tab of your service, add the following key-value pairs:
+   - `NODE_ENV`: `production`
+   - `GEMINI_API_KEY`: `your_actual_google_gemini_api_key`
+   - `APP_NAME`: `Personalized Networking Assistant`
+5. **(Optional) Database Persistence with Render Disks**:
+   By default, SQLite creates the `networking_assistant.db` file in the application's root directory. Since Render free tier web services have ephemeral filesystems (changes are lost on restart/redeploy), to persist your history permanently:
+   - Upgrade to a Paid Individual instance type (Starter plan or higher).
+   - Go to **Disks** -> **Add Disk**.
+   - **Name**: `db-volume`
+   - **Mount Path**: `/var/data`
+   - **Size**: `1 GiB` (minimum)
+   - In your Render environment variables, add:
+     - `DATABASE_URL`: `/var/data/networking_assistant.db`
+     - *(Note: The database service automatically handles database file creation at whatever path is defined).*
+6. **Deploy**:
+   Click **Deploy Web Service**. Render will build the React application, bundle the Express server with esbuild, and spin up the production Node container. Once the service is live, you can access your personalized networking assistant at the provided `.onrender.com` URL!

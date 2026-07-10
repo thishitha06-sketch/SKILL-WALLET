@@ -7,8 +7,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { fileURLToPath } from "url";
-import initSqlJs from "sql.js";
+import sqlite3Package from "sqlite3";
 import { LoggerService } from "./logger.js";
+
+const sqlite3 = sqlite3Package.verbose();
 
 const __filename = typeof import.meta?.url === "string" ? fileURLToPath(import.meta.url) : "";
 const __dirname = __filename ? path.dirname(__filename) : "";
@@ -16,9 +18,17 @@ const __dirname = __filename ? path.dirname(__filename) : "";
 const TAG = "DatabaseService";
 
 const isServerless = process.env.VERCEL === "1" || !!process.env.VERCEL;
-const DB_FILE = isServerless 
-  ? path.join(os.tmpdir(), "networking_assistant.db")
-  : "networking_assistant.db";
+let DB_FILE = "networking_assistant.db";
+
+if (process.env.DATABASE_URL) {
+  if (process.env.DATABASE_URL.startsWith("sqlite://")) {
+    DB_FILE = process.env.DATABASE_URL.substring(9);
+  } else {
+    DB_FILE = process.env.DATABASE_URL;
+  }
+} else if (isServerless) {
+  DB_FILE = path.join(os.tmpdir(), "networking_assistant.db");
+}
 
 export interface ConversationHistoryRow {
   id: number;
@@ -108,7 +118,7 @@ export interface AnalyticsRow {
 }
 
 export class DatabaseService {
-  private static db: any = null;
+  private static db: sqlite3Package.Database | null = null;
   private static initPromise: Promise<void> | null = null;
 
   static init(): Promise<void> {
@@ -116,61 +126,43 @@ export class DatabaseService {
       return this.initPromise;
     }
 
-    this.initPromise = (async () => {
-      LoggerService.info(TAG, `Initializing sql.js SQLite database at: ${DB_FILE}`);
-      try {
-        const SQL = await initSqlJs();
-        if (fs.existsSync(DB_FILE)) {
-          LoggerService.info(TAG, `Loading existing SQLite database from ${DB_FILE}`);
-          const fileBuffer = fs.readFileSync(DB_FILE);
-          this.db = new SQL.Database(fileBuffer);
-        } else {
-          LoggerService.info(TAG, `Creating fresh SQLite database`);
-          this.db = new SQL.Database();
+    this.initPromise = new Promise((resolve, reject) => {
+      LoggerService.info(TAG, `Initializing SQLite database at: ${DB_FILE}`);
+      this.db = new sqlite3.Database(DB_FILE, async (err) => {
+        if (err) {
+          LoggerService.error(TAG, `Failed to open SQLite database: ${err.message}`, err);
+          return reject(err);
         }
 
-        // Enable foreign keys
-        await this.runQuery("PRAGMA foreign_keys = ON;");
+        try {
+          // Enable foreign keys
+          await this.runQuery("PRAGMA foreign_keys = ON;");
 
-        // Create tables
-        await this.createTables();
+          // Create tables
+          await this.createTables();
 
-        // Seed if empty
-        await this.seedIfEmpty();
+          // Seed if empty
+          await this.seedIfEmpty();
 
-        // Initial save to make sure the file is written
-        this.save();
-
-        LoggerService.info(TAG, "sql.js SQLite database initialized successfully.");
-      } catch (err: any) {
-        LoggerService.error(TAG, `sql.js SQLite init failed: ${err.message}`, err);
-        throw err;
-      }
-    })();
+          LoggerService.info(TAG, "SQLite database initialized successfully.");
+          resolve();
+        } catch (initErr: any) {
+          LoggerService.error(TAG, `SQLite init failed: ${initErr.message}`, initErr);
+          reject(initErr);
+        }
+      });
+    });
 
     return this.initPromise;
-  }
-
-  private static save(): void {
-    if (!this.db) return;
-    try {
-      const data = this.db.export();
-      const buffer = Buffer.from(data);
-      fs.writeFileSync(DB_FILE, buffer);
-    } catch (err: any) {
-      LoggerService.error(TAG, `Failed to save SQLite database to disk: ${err.message}`, err);
-    }
   }
 
   private static runQuery(sql: string, params: any[] = []): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.db) return reject(new Error("Database not initialized"));
-      try {
-        this.db.run(sql, params);
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
+      this.db.run(sql, params, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
     });
   }
 
@@ -182,33 +174,17 @@ export class DatabaseService {
     const cleanSql = sql.replace(/\s+/g, " ").trim();
     LoggerService.debug(TAG, `EXECUTE SQLITE: ${cleanSql}`, params);
 
-    try {
-      this.db.run(cleanSql, params);
-
-      let lastID = 0;
-      try {
-        const stmt = this.db.prepare("SELECT last_insert_rowid() AS id");
-        if (stmt.step()) {
-          lastID = stmt.getAsObject().id as number;
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject(new Error("Database not initialized"));
+      this.db.run(cleanSql, params, function (err) {
+        if (err) {
+          LoggerService.error(TAG, `SQLITE execute error for SQL [${cleanSql}]: ${err.message}`, err);
+          reject(err);
+        } else {
+          resolve({ id: this.lastID, changes: this.changes });
         }
-        stmt.free();
-      } catch {}
-
-      let changes = 0;
-      try {
-        const stmt = this.db.prepare("SELECT changes() AS changes");
-        if (stmt.step()) {
-          changes = stmt.getAsObject().changes as number;
-        }
-        stmt.free();
-      } catch {}
-
-      this.save();
-      return { id: lastID, changes };
-    } catch (err: any) {
-      LoggerService.error(TAG, `SQLITE execute error for SQL [${cleanSql}]: ${err.message}`, err);
-      throw err;
-    }
+      });
+    });
   }
 
   static async query<T>(sql: string, params: any[] = []): Promise<T[]> {
@@ -219,19 +195,17 @@ export class DatabaseService {
     const cleanSql = sql.replace(/\s+/g, " ").trim();
     LoggerService.debug(TAG, `QUERY SQLITE: ${cleanSql}`, params);
 
-    try {
-      const stmt = this.db.prepare(cleanSql);
-      stmt.bind(params);
-      const rows: T[] = [];
-      while (stmt.step()) {
-        rows.push(stmt.getAsObject() as unknown as T);
-      }
-      stmt.free();
-      return rows;
-    } catch (err: any) {
-      LoggerService.error(TAG, `SQLITE query error for SQL [${cleanSql}]: ${err.message}`, err);
-      throw err;
-    }
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject(new Error("Database not initialized"));
+      this.db.all(cleanSql, params, (err, rows) => {
+        if (err) {
+          LoggerService.error(TAG, `SQLITE query error for SQL [${cleanSql}]: ${err.message}`, err);
+          reject(err);
+        } else {
+          resolve(rows as T[]);
+        }
+      });
+    });
   }
 
   static async get<T>(sql: string, params: any[] = []): Promise<T | null> {
@@ -242,19 +216,17 @@ export class DatabaseService {
     const cleanSql = sql.replace(/\s+/g, " ").trim();
     LoggerService.debug(TAG, `GET SQLITE: ${cleanSql}`, params);
 
-    try {
-      const stmt = this.db.prepare(cleanSql);
-      stmt.bind(params);
-      let result: T | null = null;
-      if (stmt.step()) {
-        result = stmt.getAsObject() as unknown as T;
-      }
-      stmt.free();
-      return result;
-    } catch (err: any) {
-      LoggerService.error(TAG, `SQLITE get error for SQL [${cleanSql}]: ${err.message}`, err);
-      throw err;
-    }
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject(new Error("Database not initialized"));
+      this.db.get(cleanSql, params, (err, row) => {
+        if (err) {
+          LoggerService.error(TAG, `SQLITE get error for SQL [${cleanSql}]: ${err.message}`, err);
+          reject(err);
+        } else {
+          resolve(row ? (row as T) : null);
+        }
+      });
+    });
   }
 
   private static async createTables(): Promise<void> {
