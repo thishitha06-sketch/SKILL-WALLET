@@ -99,11 +99,20 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
         body: JSON.stringify(body)
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Authentication failed. Please check your credentials.");
+        let errorMessage = "Authentication failed. Please check your credentials.";
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            errorMessage = errData.error;
+          }
+        } catch {
+          errorMessage = `Server error (${response.status}): Could not complete authentication.`;
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await response.json();
       onAuthSuccess(data.token, data.user);
     } catch (err: any) {
       setError(err.message);

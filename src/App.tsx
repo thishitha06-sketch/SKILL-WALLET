@@ -144,8 +144,16 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Generation request failed on backend.");
+        let errorMessage = "Generation request failed on backend.";
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            errorMessage = errData.error;
+          }
+        } catch {
+          errorMessage = `Server error (${response.status}): Could not complete generation.`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -177,8 +185,16 @@ export default function App() {
     });
 
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || "Fact-check search failed.");
+      let errorMessage = "Fact-check search failed.";
+      try {
+        const errData = await response.json();
+        if (errData && errData.error) {
+          errorMessage = errData.error;
+        }
+      } catch {
+        errorMessage = `Server error (${response.status}): Could not complete search.`;
+      }
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
