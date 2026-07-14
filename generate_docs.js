@@ -665,10 +665,22 @@ function writeMarkdown(doc) {
 
 // Helper to generate PDF using PDFKit
 function writePDF(docData) {
-  const filePath = path.join(docData.folder, `${docData.filename}.pdf`);
-  const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
-  const writeStream = fs.createWriteStream(filePath);
-  doc.pipe(writeStream);
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(docData.folder, `${docData.filename}.pdf`);
+    const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true });
+    const writeStream = fs.createWriteStream(filePath);
+    
+    writeStream.on('error', (err) => {
+      console.error(`Error writing PDF file: ${filePath}`, err);
+      reject(err);
+    });
+    
+    doc.on('error', (err) => {
+      console.error(`Error in PDFKit document for: ${filePath}`, err);
+      reject(err);
+    });
+
+    doc.pipe(writeStream);
 
   // Set default metadata
   doc.info['Title'] = docData.title;
@@ -791,15 +803,24 @@ function writePDF(docData) {
 
   writeStream.on('finish', () => {
     console.log(`✓ Created PDF: ${filePath}`);
+    resolve();
+  });
   });
 }
 
-// Write all documents
-documents.forEach(doc => {
-  writeMarkdown(doc);
-  writePDF(doc);
-});
+// Write all documents sequentially
+async function generateAll() {
+  for (const doc of documents) {
+    writeMarkdown(doc);
+    await writePDF(doc);
+  }
+  
+  console.log("\n=======================================================");
+  console.log("ALL ACADEMIC SUBMISSION DOCUMENTS GENERATED SUCCESSFULLY!");
+  console.log("=======================================================\n");
+}
 
-console.log("\n=======================================================");
-console.log("ALL ACADEMIC SUBMISSION DOCUMENTS GENERATED SUCCESSFULLY!");
-console.log("=======================================================\n");
+generateAll().catch(err => {
+  console.error("Failed to generate academic documents:", err);
+  process.exit(1);
+});
