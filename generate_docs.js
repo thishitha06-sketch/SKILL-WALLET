@@ -771,29 +771,25 @@ function writePDF(docData) {
   });
 
   // Global Footers (Two-pass page numbers)
-  doc.on('pageAdded', () => {
-    // We add page number dynamically after layout
-  });
+  const range = doc.bufferedPageRange();
+  for (let i = range.start; i < range.start + range.count; i++) {
+    doc.switchToPage(i);
+    
+    // Draw header
+    doc.fillColor('#94A3B8').fontSize(7);
+    doc.text(projectName, 50, 30, { align: 'left' });
+    doc.text('ACADEMIC DOSSIER', 50, 30, { align: 'right' });
+    doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, 42).lineTo(545, 42).stroke();
+
+    // Draw footer
+    doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, 800).lineTo(545, 800).stroke();
+    doc.text(`Page ${i + 1} of ${range.count}`, 50, 808, { align: 'right' });
+    doc.text('AUTHENTIC ACADEMIC REPOSITORY SUBMISSION • FOR REVIEW ONLY', 50, 808, { align: 'left' });
+  }
 
   doc.end();
 
   writeStream.on('finish', () => {
-    // Process page numbers and footers on the buffer
-    const range = doc.bufferedPageRange();
-    for (let i = range.start; i < range.start + range.count; i++) {
-      doc.switchToPage(i);
-      
-      // Draw header
-      doc.fillColor('#94A3B8').fontSize(7);
-      doc.text(projectName, 50, 30, { align: 'left' });
-      doc.text('ACADEMIC DOSSIER', 50, 30, { align: 'right' });
-      doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, 42).lineTo(545, 42).stroke();
-
-      // Draw footer
-      doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, 800).lineTo(545, 800).stroke();
-      doc.text(`Page ${i + 1} of ${range.count}`, 50, 808, { align: 'right' });
-      doc.text('AUTHENTIC ACADEMIC REPOSITORY SUBMISSION • FOR REVIEW ONLY', 50, 808, { align: 'left' });
-    }
     console.log(`✓ Created PDF: ${filePath}`);
   });
 }
