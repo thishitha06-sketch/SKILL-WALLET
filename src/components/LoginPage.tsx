@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { 
   Mail, Lock, User, ArrowRight, Sparkles, Network, 
   Cpu, ShieldAlert, Award, Briefcase, Globe,
-  Star, Check, Zap, ShieldCheck, MessageSquare
+  Star, Check, Zap, ShieldCheck, MessageSquare, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "./Logo.js";
@@ -32,10 +32,16 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
   const [careerGoals, setCareerGoals] = useState("");
   const [networkingGoals, setNetworkingGoals] = useState("");
 
-  const [selectedPlan, setSelectedPlan] = useState<"basic" | "executive" | "enterprise">("executive");
+  const [selectedPlan, setSelectedPlan] = useState<"basic" | "executive" | "enterprise">("basic");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // States for subscription amount prompts
+  const [askAmountFor, setAskAmountFor] = useState<"executive" | "enterprise" | null>(null);
+  const [amountInput, setAmountInput] = useState<string>("");
+  const [executiveAmount, setExecutiveAmount] = useState<string>("49");
+  const [enterpriseAmount, setEnterpriseAmount] = useState<string>("Custom");
 
   // Mouse spotlight state for interactive cards
   const handleSpotlightMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -60,15 +66,14 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
   };
 
   const handleSelectPlan = (plan: "basic" | "executive" | "enterprise") => {
-    setSelectedPlan(plan);
     if (plan === "basic") {
+      setSelectedPlan("basic");
       setRole("Professional");
-    } else if (plan === "executive") {
-      setRole("Executive");
-    } else if (plan === "enterprise") {
-      setRole("Sovereign Enterprise");
+      scrollToPortal("register");
+    } else {
+      setAskAmountFor(plan);
+      setAmountInput(plan === "executive" ? executiveAmount : (enterpriseAmount === "Custom" ? "" : enterpriseAmount));
     }
-    scrollToPortal("register");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -492,7 +497,9 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                 </div>
                 
                 <div className="flex items-baseline gap-1 pt-2">
-                  <span className="text-3xl font-display font-extrabold text-white">$49</span>
+                  <span className="text-3xl font-display font-extrabold text-white">
+                    {executiveAmount.startsWith('$') ? '' : '$'}{executiveAmount}
+                  </span>
                   <span className="text-xs text-neutral-300 font-mono">/ MONTH</span>
                 </div>
 
@@ -547,7 +554,9 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                 </div>
                 
                 <div className="flex items-baseline gap-1 pt-2">
-                  <span className="text-3xl font-display font-extrabold text-white">Custom</span>
+                  <span className="text-3xl font-display font-extrabold text-white">
+                    {enterpriseAmount === "Custom" ? "Custom" : `${enterpriseAmount.startsWith('$') ? '' : '$'}${enterpriseAmount}`}
+                  </span>
                   <span className="text-xs text-neutral-400 font-mono">/ ANNUAL</span>
                 </div>
 
@@ -747,8 +756,7 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedPlan("basic");
-                            setRole("Professional");
+                            handleSelectPlan("basic");
                           }}
                           className={`py-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer border ${
                             selectedPlan === "basic"
@@ -761,8 +769,7 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedPlan("executive");
-                            setRole("Executive");
+                            handleSelectPlan("executive");
                           }}
                           className={`py-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer border ${
                             selectedPlan === "executive"
@@ -775,8 +782,7 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedPlan("enterprise");
-                            setRole("Sovereign Enterprise");
+                            handleSelectPlan("enterprise");
                           }}
                           className={`py-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer border ${
                             selectedPlan === "enterprise"
@@ -789,8 +795,8 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
                       </div>
                       <p className="text-[10px] text-neutral-300 italic font-mono">
                         {selectedPlan === "basic" && "✓ Plan pre-configured: Professional Access."}
-                        {selectedPlan === "executive" && "✓ Plan pre-configured: Executive Elite Access."}
-                        {selectedPlan === "enterprise" && "✓ Plan pre-configured: Sovereign Enterprise Access."}
+                        {selectedPlan === "executive" && `✓ Plan pre-configured: Executive Elite Access (Custom Amount: $${executiveAmount}).`}
+                        {selectedPlan === "enterprise" && `✓ Plan pre-configured: Sovereign Enterprise Access (Custom Amount: $${enterpriseAmount}).`}
                       </p>
                     </div>
                   )}
@@ -996,6 +1002,108 @@ export function LoginPage({ onAuthSuccess }: LoginPageProps) {
         </section>
 
       </main>
+
+      {/* Dynamic Amount Input Prompt Modal */}
+      <AnimatePresence>
+        {askAmountFor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-neutral-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setAskAmountFor(null);
+                  setSelectedPlan("basic");
+                  setRole("Professional");
+                }}
+                className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-4">
+                <div className="space-y-2 text-center">
+                  <div className="mx-auto w-12 h-12 bg-accent/10 border border-accent/25 rounded-2xl flex items-center justify-center text-accent mb-2 shadow-inner">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-display font-extrabold text-white">
+                    {askAmountFor === "executive" ? "Executive Elite" : "Sovereign Enterprise"}
+                  </h3>
+                  <p className="text-xs text-neutral-400">
+                    {askAmountFor === "executive" 
+                      ? "Specify the monthly amount you would like to contribute for Full Suite access."
+                      : "Enter your proposed annual budget for Custom Enterprise resources."
+                    }
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-400">
+                    Proposed Amount ($)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-accent font-mono font-bold text-lg pointer-events-none">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      placeholder={askAmountFor === "executive" ? "49" : "5000"}
+                      value={amountInput}
+                      onChange={(e) => setAmountInput(e.target.value.replace(/[^0-9.]/g, ""))}
+                      className="w-full bg-neutral-950 border border-white/10 focus:border-accent text-white font-mono text-lg rounded-2xl pl-10 pr-4 py-3.5 focus:outline-none transition-colors shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAskAmountFor(null);
+                      setSelectedPlan("basic");
+                      setRole("Professional");
+                    }}
+                    className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest text-neutral-300 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const finalAmount = amountInput.trim() || (askAmountFor === "executive" ? "49" : "Custom");
+                      if (askAmountFor === "executive") {
+                        setExecutiveAmount(finalAmount);
+                        setSelectedPlan("executive");
+                        setRole("Executive");
+                      } else {
+                        setEnterpriseAmount(finalAmount);
+                        setSelectedPlan("enterprise");
+                        setRole("Sovereign Enterprise");
+                      }
+                      setAskAmountFor(null);
+                      scrollToPortal("register");
+                    }}
+                    className="w-full py-3 bg-accent text-black hover:bg-white rounded-xl text-xs font-mono font-bold uppercase tracking-widest transition-colors cursor-pointer"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer copyright */}
       <footer className="w-full border-t border-white/5 bg-black/40 py-8 px-6 text-center text-xs text-neutral-500 font-mono relative z-10">

@@ -319,18 +319,6 @@ export default function App() {
             </div>
           </div>
 
-          <a
-            href="/admin/db-viewer"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-medium text-neutral-300 hover:text-white bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-accent/30 px-3.5 py-1.5 rounded-full shadow-lg transition duration-300 shrink-0"
-            title="Open SQLite Database Viewer admin page"
-            id="db-viewer-link"
-          >
-            <Clock className="w-3.5 h-3.5 text-accent animate-spin-slow" />
-            <span className="hidden sm:inline">Database Viewer</span>
-          </a>
-
           <button
             onClick={handleLogout}
             className="inline-flex items-center gap-2 text-xs font-medium text-neutral-300 hover:text-white bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-accent-secondary/30 px-3.5 py-1.5 rounded-full shadow-lg transition duration-300 cursor-pointer shrink-0"
